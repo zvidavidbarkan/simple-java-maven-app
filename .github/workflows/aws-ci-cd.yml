@@ -17,7 +17,7 @@ jobs:
           java-version: '17.0.9+9'
           distribution: 'temurin'
           cache: 'maven'
-
+      
       - name: Calculate and Export Version
         run: |
           PATCH_VERSION="$((GITHUB_RUN_NUMBER-1))"
@@ -28,6 +28,12 @@ jobs:
         run: |
           mvn versions:set -DnewVersion="${APP_VERSION}" -DgenerateBackupPoms=false
           mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with: 
+          aws-region: eu-central-1 
+
       - name: Login to AWS-ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@183a1442edf41672e66566b7fc560e297a290896

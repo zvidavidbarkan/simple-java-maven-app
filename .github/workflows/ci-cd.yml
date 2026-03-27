@@ -28,6 +28,15 @@ jobs:
         run: |
           mvn versions:set -DnewVersion="${APP_VERSION}" -DgenerateBackupPoms=false
           mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+      - name: Login to DockerHub
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build Docker Image
         run: |
-          docker build -t simple-java-maven-app:"${APP_VERSION}" .
+          IMAGE_REF="${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${APP_VERSION}"
+          docker build -t "${IMAGE_REF}" .
+          docker push "${IMAGE_REF}"
+

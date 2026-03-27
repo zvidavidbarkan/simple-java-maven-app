@@ -28,20 +28,21 @@ jobs:
         run: |
           mvn versions:set -DnewVersion="${APP_VERSION}" -DgenerateBackupPoms=false
           mvn help:evaluate -Dexpression=project.version -q -DforceStdout
-      - name: Login to DockerHub
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to AWS-ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@183a1442edf41672e66566b7fc560e297a290896
 
       - name: Build Docker Image
+        env: 
+          REGISTRY: ${{ steps.login-ecr.outputs.registry}}
+          REPOSITORY: simple-java-maven-app
+          IMAGE_TAG: ${{ env.APP_VERSION }}
+        
         run: |
-          IMAGE_REF="${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${APP_VERSION}"
-          IMAGE_LATEST="${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:latest"
+          IMAGE_URI="${REGISTRY}/${REPOSITORY}:${IMAGE_TAG}"
 
-          docker build -t "${IMAGE_REF}" -t "${IMAGE_LATEST}" .
+          docker build -t "${IMAGE_URI}" .
           
-          docker push "${IMAGE_REF}"
-          docker push "${IMAGE_LATEST}"
+          docker push "${IMAGE_URI}"
 
 
